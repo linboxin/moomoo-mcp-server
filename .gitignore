@@ -7,3 +7,7 @@ build/
 *.egg-info/
 .idea/
 .vscode/
+.env.local
+debug_*.py
+debug_out.txt
+*.log

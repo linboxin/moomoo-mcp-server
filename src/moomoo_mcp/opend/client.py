@@ -10,6 +10,7 @@ from futu import (
     KLType,
     AuType,
     SubType,
+    TrdEnv,
 )
 from ..config import config
 from ..utils.symbols import normalize_symbol
@@ -35,6 +36,11 @@ class MoomooClient:
             if cls._instance is None:
                 cls._instance = cls()
             return cls._instance
+
+    def _get_trd_env(self):
+        if config.env.lower() == "live":
+            return TrdEnv.REAL
+        return TrdEnv.SIMULATE
 
     def connect(self):
         """Connects to OpenD if not already connected."""
@@ -120,6 +126,42 @@ class MoomooClient:
         else:
              logger.error(f"Error fetching kline for {symbol}: {data}")
              raise QuoteError(f"OpenD Error: {data}")
+
+    def get_positions(self, market: str = "HK") -> List[Dict[str, Any]]:
+        """
+        Fetches current stock positions.
+        """
+        self.connect()
+        if not self._trade_ctx:
+            raise OpenDConnectionError("Trade context is null")
+            
+        trd_env = self._get_trd_env()
+        # Note: position_list_query(code='', pl_ratio_min=None, pl_ratio_max=None, trd_env=TrdEnv.REAL, acc_id=0, acc_index=0, refresh_cache=False)
+        ret, data = self._trade_ctx.position_list_query(trd_env=trd_env)
+        
+        if ret == RET_OK:
+            return data.to_dict(orient="records")
+        else:
+            logger.error(f"Error fetching positions: {data}")
+            raise QuoteError(f"OpenD Error: {data}")
+
+    def get_balance(self, market: str = "HK") -> Dict[str, Any]:
+        """
+        Fetches account balance details.
+        """
+        self.connect()
+        if not self._trade_ctx:
+            raise OpenDConnectionError("Trade context is null")
+            
+        trd_env = self._get_trd_env()
+        # Note: accinfo_query(trd_env=TrdEnv.REAL, acc_id=0, acc_index=0, refresh_cache=False)
+        ret, data = self._trade_ctx.accinfo_query(trd_env=trd_env)
+        
+        if ret == RET_OK:
+            return data.to_dict(orient="records")[0]
+        else:
+            logger.error(f"Error fetching balance: {data}")
+            raise QuoteError(f"OpenD Error: {data}")
 
     def close(self):
         if self._quote_ctx:
