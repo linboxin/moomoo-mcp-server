@@ -9,7 +9,7 @@ def main():
         client.connect()
         print("Connected!")
         
-        symbol = "US.AAPL"
+        symbol = "00700" # Test normalization (should become HK.00700)
         print(f"Fetching quote for {symbol}...")
         quote = client.get_quote(symbol)
         print("Quote received:")

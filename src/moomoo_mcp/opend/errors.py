@@ -12,6 +12,4 @@ class QuoteError(MooMcpError):
 
 def map_futu_error(err: Exception) -> MooMcpError:
     """Map futu-api exceptions to our local error types."""
-    # This is a placeholder; futu usually returns RetType values or raises exceptions
-    # We will refine this as we observe actual futu errors.
     return MooMcpError(str(err))

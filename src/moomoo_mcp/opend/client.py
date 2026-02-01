@@ -3,11 +3,16 @@ import threading
 from typing import Optional, Dict, List, Any
 from futu import (
     OpenQuoteContext,
+    OpenHKTradeContext,
     RET_OK,
     RET_ERROR,
     SysConfig,
+    KLType,
+    AuType,
+    SubType,
 )
 from ..config import config
+from ..utils.symbols import normalize_symbol
 from .errors import OpenDConnectionError, QuoteError
 
 logger = logging.getLogger(__name__)
@@ -18,6 +23,7 @@ class MoomooClient:
 
     def __init__(self):
         self._quote_ctx: Optional[OpenQuoteContext] = None
+        self._trade_ctx: Optional[OpenHKTradeContext] = None
         self._connected = False
         
         # Configure futu global settings if needed
@@ -39,17 +45,26 @@ class MoomooClient:
         try:
             # Initialize Quote Context
             self._quote_ctx = OpenQuoteContext(host=config.host, port=config.port)
-            # Sync start required? usually yes.
-            # OpenQuoteContext connects on init usually or we can check status?
-            # Actually futu-api connects on __init__.
             
+            # Initialize HK Trade Context (since we are focused on HK)
+            self._trade_ctx = OpenHKTradeContext(host=config.host, port=config.port)
+
             # Simple test call
             ret, _ = self._quote_ctx.get_global_state()
             if ret != RET_OK:
                 raise OpenDConnectionError("Failed to get global state after connect.")
 
+            # Unlock if password provided
+            if config.pwd:
+                logger.info("Unlocking trade context...")
+                ret, data = self._trade_ctx.unlock_trade(config.pwd)
+                if ret != RET_OK:
+                     logger.warning(f"Failed to unlock trade: {data}")
+                else:
+                     logger.info("Trade context unlocked.")
+
             self._connected = True
-            logger.info("Connected to OpenD (Quote Context).")
+            logger.info("Connected to OpenD (Quote + HK Trade Context).")
         except Exception as e:
             logger.error(f"Failed to connect to OpenD: {e}")
             self._connected = False
@@ -64,21 +79,57 @@ class MoomooClient:
         if not self._quote_ctx:
              raise OpenDConnectionError("Quote context is null")
 
-        # Futu expects symbol like "US.AAPL"
+        symbol = normalize_symbol(symbol)
+
+        # 1. Subscribe to QUOTE data
+        ret, err = self._quote_ctx.subscribe([symbol], [SubType.QUOTE], subscribe_push=False)
+        if ret != RET_OK:
+            raise QuoteError(f"Subscription failed for {symbol}: {err}")
+
+        # 2. Get stock quote
         ret, data = self._quote_ctx.get_stock_quote([symbol])
         if ret == RET_OK:
-            # data is a DataFrame
-            # Convert to dict
-            record = data.to_dict(orient="records")[0]
-            # Normalize keys if needed? For now return raw python data
-            return record
+            return data.to_dict(orient="records")[0]
         else:
             logger.error(f"Error fetching quote for {symbol}: {data}")
             raise QuoteError(f"OpenD Error: {data}")
 
+    def get_kline(self, symbol: str, ktype: str = "K_DAY", limit: int = 100) -> List[Dict[str, Any]]:
+        """
+        Fetches historical kline data using request_history_kline.
+        """
+        self.connect()
+        if not self._quote_ctx:
+             raise OpenDConnectionError("Quote context is null")
+        
+        symbol = normalize_symbol(symbol)
+
+        # 1. Subscribe (ensure we have rights/data)
+        ret, err = self._quote_ctx.subscribe([symbol], [ktype], subscribe_push=False)
+        if ret != RET_OK:
+            raise QuoteError(f"Subscription failed for {symbol} {ktype}: {err}")
+            
+        # 2. Get data using request_history_kline
+        ret, data, _ = self._quote_ctx.request_history_kline(symbol, ktype=ktype, max_count=limit)
+        
+        # 3. Unsubscribe
+        self._quote_ctx.unsubscribe([symbol], [ktype])
+        
+        if ret == RET_OK:
+             return data.to_dict(orient="records")
+        else:
+             logger.error(f"Error fetching kline for {symbol}: {data}")
+             raise QuoteError(f"OpenD Error: {data}")
+
     def close(self):
         if self._quote_ctx:
+            try:
+                self._quote_ctx.unsubscribe_all()
+            except Exception as e:
+                logger.warning(f"Error unsubscribing all: {e}")
             self._quote_ctx.close()
+        if self._trade_ctx:
+            self._trade_ctx.close()
         self._connected = False
         logger.info("Disconnected from OpenD.")
 
