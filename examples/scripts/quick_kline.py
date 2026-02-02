@@ -19,6 +19,9 @@ def main():
         else:
              print("Unexpected error.")
              sys.exit(1)
+    finally:
+        from moomoo_mcp.opend.client import get_client
+        get_client().close()
 
 if __name__ == "__main__":
     main()

@@ -1,47 +1,66 @@
-# MCP Server for moomoo (OpenD)
+# Moomoo MCP Server
 
-An MCP server that exposes **moomoo OpenD** market data (and later, guarded trading actions) as simple tools for LLM agents.
+An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to provide market data and trading capabilities to LLMs (like Claude, Gemini, etc.).
 
-**Status:** pre-MVP (building in public)  
-**Default mode:** read-only + paper/sim-first (no live trading by default)
+## 🚀 Features
 
-## Why
-- Agents need a clean tool interface (MCP)
-- moomoo connectivity goes through OpenD (local gateway)
-- Quants want pandas-ready outputs + notebooks
+### Market Data
+- **Real-time Quotes**: Fetch live snapshots (price, volume, turnover) for stocks.
+- **Historical K-Lines**: Retrieve candlestick data (Daily, 1m, 5m, etc.) for technical analysis.
+- **Auto-Subscription**: Automatically handles Moomoo's subscription limits so you don't have to manual manage them.
+- **Symbol Normalization**: Smartly handles symbols like `00700` (auto-converts to `HK.00700` based on default market).
 
-## Features (MVP)
-- [ ] quote.get — last price, bid/ask, volume
-- [ ] candles.get — historical bars
-- [ ] positions.list
-- [ ] account.summary
+### Account & Assets
+- **Positions**: View your current stock holdings, quantities, and P/L.
+- **Balance**: Check account cash, market value, and purchasing power.
+- **Paper Trading Ready**: Automatically detects your environment configuration and switches to `Simulate` mode for safety.
 
-## Architecture
-Agent (LLM)
-  → MCP tools
-  → This server (Python/FastMCP)
-  → OpenD (local gateway)
-  → moomoo OpenAPI
+## 🛠️ Installation
 
-## Quickstart (coming this weekend)
-1) Install and log into OpenD
-2) `uv venv && uv pip install -e .`  (or `pip install -e .`)
-3) `python -m mcp_moomoo.server`
-4) Connect your MCP client via stdio
+1. **Prerequisites**
+   - Install [Moomoo OpenD](https://www.moomoo.com/download/opend) and have it running.
+   - Python 3.10+
 
-## Config
-Copy `.env.example` to `.env`:
-- MOOMOO_OPEND_HOST=127.0.0.1
-- MOOMOO_OPEND_PORT=xxxxx
-- MOOMOO_ENV=paper
+2. **Clone & Install**
+   ```bash
+   git clone <repo-url>
+   cd moomoo-mcp-server
+   pip install -e .
+   ```
 
-## Safety
-- Not financial advice.
-- Live trading disabled by default.
-- Trading tools (post-MVP) will require explicit opt-in and hard risk caps.
+3. **Configuration**
+   Create a `.env` file in the root directory (see `.env.example`):
+   ```ini
+   # Moomoo OpenD Connection
+   OPEND_HOST=127.0.0.1
+   OPEND_PORT=11111
+   OPEND_PWD=              # Leave empty if no unlock password set in OpenD
+   
+   # Trading Environment
+   MOOMOO_ENV=paper        # 'paper' or 'live'
+   MOOMOO_DEFAULT_MARKET=HK # Default market prefix (HK, US, CN)
+   ```
 
-## Contributing
-Issues/PRs welcome, especially:
-- OpenD connectivity notes (OS, version, logs)
-- tool schema suggestions
-- example notebooks
+## 🔌 Available Tools
+
+| Tool | Description | Arguments |
+| :--- | :--- | :--- |
+| `get_quote` | Real-time price snapshot | `symbol` (e.g., "HK.00700") |
+| `get_kline` | Historical candlesticks | `symbol`, `period` (default "1d"), `limit` |
+| `get_positions` | Current stock holdings | *None* |
+| `get_balance` | Account funds details | *None* |
+
+## 🧪 Verification
+
+You can test the connection and tools using the provided scripts:
+```bash
+# Test Market Data
+python examples/scripts/quick_quote.py
+python examples/scripts/quick_kline.py
+
+# Test Account Data
+python examples/scripts/account_snapshot.py
+```
+
+## ⚠️ Risk & Disclaimer
+This software is for educational and research purposes. Validating in `paper` mode is highly recommended before any live usage.

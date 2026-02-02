@@ -10,6 +10,7 @@ class OpenDConfig(BaseModel):
     pwd: str = Field(default="", description="OpenD Unlock Password")
     env: str = Field(default="paper", description="Environment: paper or live")
     default_market: str = Field(default="HK", description="Default market for symbols (HK, US, CN)")
+    max_order_value: float = Field(default=2000.0, description="Max allowed value per order")
 
     @classmethod
     def from_env(cls) -> "OpenDConfig":
@@ -19,6 +20,7 @@ class OpenDConfig(BaseModel):
             pwd=os.getenv("OPEND_PWD", ""),
             env=os.getenv("MOOMOO_ENV", "paper"),
             default_market=os.getenv("MOOMOO_DEFAULT_MARKET", "HK"),
+            max_order_value=float(os.getenv("MAX_ORDER_VALUE", "2000.0")),
         )
 
 config = OpenDConfig.from_env()

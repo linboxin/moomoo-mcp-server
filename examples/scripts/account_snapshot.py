@@ -28,6 +28,9 @@ def main():
              print("(Expected failure if OpenD is not running)")
         else:
              sys.exit(1)
+    finally:
+        from moomoo_mcp.opend.client import get_client
+        get_client().close()
 
 if __name__ == "__main__":
     main()
