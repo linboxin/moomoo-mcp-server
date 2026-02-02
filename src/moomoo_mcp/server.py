@@ -13,6 +13,7 @@ from .trading.buy_stock import buy_stock
 from .trading.sell_stock import sell_stock
 from .trading.cancel_order import cancel_order
 from .trading.modify_order import modify_order
+from .system.run_diagnostics import run_diagnostics
 
 # Initialize FastMCP
 mcp = FastMCP("moomoo-mcp-server")
@@ -34,6 +35,7 @@ mcp.add_tool(buy_stock)
 mcp.add_tool(sell_stock)
 mcp.add_tool(cancel_order)
 mcp.add_tool(modify_order)
+mcp.add_tool(run_diagnostics)
 
 @mcp.tool()
 def health_ping() -> str:

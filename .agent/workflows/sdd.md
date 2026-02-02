@@ -23,8 +23,14 @@ Before implementing any complex feature (Milestone B, C, D, F), follow this proc
    - If you need to deviate significantly, update the design doc first.
 
 5. **Verify**:
-   - Ensure implementation matches the behaviors defined in the design.
+   - Run verification scripts.
+   - If verification fails, **FIX** the code and re-run immediately. Do not stop to ask the user unless blocked.
+   - Proceed to the next step only after verification passes.
 
-6. **Documentation**:
-   - Update `README.md` if new tools are added.
-   - List the new tool, its description, and arguments in the "Available Tools" table.
+6. **Documentation** (CRITICAL):
+   - **Immediately** after verification, update `README.md`.
+   - Add new tools to the "Available Tools" table (Name, Description, Arguments).
+   - Update the "Features" section if applicable.
+
+7. **Completion**:
+   - Only call `notify_user` to finish the milestone **AFTER** `README.md` is updated.

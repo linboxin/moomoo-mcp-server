@@ -65,6 +65,7 @@ An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to prov
 | `get_order_book` | Level 2 Market Depth (Ladder) | `symbol` |
 | `get_financials` | Key Ratios (PE, PB, Market Cap) | `symbol` |
 | `get_max_buyable`| Calc max shares (with reason analysis) | `symbol`, `price` |
+| `run_diagnostics`| Execute self-test health check | `symbol` (optional) |
 
 ## 🧪 Verification
 
