@@ -1,1 +1,0 @@
-CRITICAL ERROR: Order Placement Error: The order you placed contains odd lot (less than 1 lot)
