@@ -2,12 +2,12 @@
 
 An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to provide market data and trading capabilities to LLMs (like Claude, Gemini, etc.).
 
-## 🚀 Features
+## Features
 
 ### Market Data
 - **Real-time Quotes**: Fetch live snapshots (price, volume, turnover) for stocks.
 - **Historical K-Lines**: Retrieve candlestick data (Daily, 1m, 5m, etc.) for technical analysis.
-- **Auto-Subscription**: Automatically handles Moomoo's subscription limits so you don't have to manual manage them.
+- **Auto-Subscription**: Automatically handles Moomoo's subscription limits so you don't have to manually manage them.
 - **Symbol Normalization**: Smartly handles symbols like `00700` (auto-converts to `HK.00700` based on default market).
 
 ### Account & Assets
@@ -22,7 +22,7 @@ An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to prov
 - **Pro Tools**: View **Level 2 Order Book** (Depth) and check **Fundamentals** (PE, PB).
 - **Risk Management**: Built-in `max_order_value` checks and buying power calculations.
 
-## 🛠️ Installation
+## Installation
 
 1. **Prerequisites**
    - Install [Moomoo OpenD](https://www.moomoo.com/download/opend) and have it running.
@@ -48,7 +48,7 @@ An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to prov
    MOOMOO_DEFAULT_MARKET=HK # Default market prefix (HK, US, CN)
    ```
 
-## 🔌 Available Tools
+## Available Tools
 
 | Tool | Description | Arguments |
 | :--- | :--- | :--- |
@@ -67,7 +67,20 @@ An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to prov
 | `get_max_buyable`| Calc max shares (with reason analysis) | `symbol`, `price` |
 | `run_diagnostics`| Execute self-test health check | `symbol` (optional) |
 
-## 🧪 Verification
+## Health Checks & Diagnostics
+
+You can perform a full system self-test using the `run_diagnostics` tool. This checks:
+*   OpenD Connection
+*   Market Data Latency
+*   Permission access to L2 Data
+*   Account Retrieval
+
+Can also be run via script:
+```bash
+python examples/scripts/test_diagnostics.py
+```
+
+## Verification
 
 You can test the connection and tools using the provided scripts:
 ```bash
@@ -81,11 +94,11 @@ python examples/scripts/account_snapshot.py
 # Test Trading & Options
 python examples/scripts/test_advanced.py
 
-# Test Pro Tools (Order Book, Financials, Order Mgmt)
+# Test Pro Tools
 python examples/scripts/test_pro_tools.py
 ```
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 1.  Fork the repository.
@@ -96,5 +109,9 @@ Contributions are welcome! Please follow these steps:
 
 Please ensure you follow the existing code style and add tests for any new features.
 
-## ⚠️ Risk & Disclaimer
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Risk & Disclaimer
 This software is for educational and research purposes. Validating in `paper` mode is highly recommended before any live usage.
