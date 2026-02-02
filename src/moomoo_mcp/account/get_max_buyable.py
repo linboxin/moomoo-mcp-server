@@ -21,15 +21,6 @@ def get_max_buyable(symbol: str, price: float = 0.0) -> str:
     reason = "Unknown"
     try:
         # 1. Get Lot Size & Price
-        quote = client.get_market_snapshot([symbol]) # returns list of dicts or dict
-        # client.get_market_snapshot returns dict per row in get_financials, but here client returns raw from ctx usually? 
-        # Wait, get_financials implemented wrapper. Client.get_market_snapshot isn't wrapped in client.py yet?
-        # Ah, in get_financials I called `client._quote_ctx.get_market_snapshot`.
-        # client.py has `get_financials` but not specific `get_market_snapshot` wrapper except inside get_financials.
-        # But I can access `get_financials` which returns `total_market_val`. 
-        # I should probably expose `get_lot_size` or uses `get_quote`?
-        # `get_quote` returns `lot_size`? Let's check `get_quote` implementation.
-        # It calls `get_stock_quote`. `StockQuote` object usually has `lot_size`.
         
         qt = client.get_quote(symbol)
         lot_size = qt.get("lot_size", 0)
