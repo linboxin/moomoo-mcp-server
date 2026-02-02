@@ -22,6 +22,8 @@ def main():
                 
         print("\nDone.")
     except Exception as e:
+        with open("snapshot_error.txt", "w") as f:
+            f.write(f"CRITICAL ERROR: {e}")
         print(f"Error: {e}")
         # Expected if OpenD is not running or trade unlock fails
         if "Connection failed" in str(e) or "WSAECONNREFUSED" in str(e):

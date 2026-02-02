@@ -11,10 +11,13 @@ from futu import (
     AuType,
     SubType,
     TrdEnv,
+    TrdSide,
+    OrderType,
 )
 from ..config import config
 from ..utils.symbols import normalize_symbol
 from .errors import OpenDConnectionError, QuoteError
+from ..risk.manager import RiskManager, RiskError
 
 logger = logging.getLogger(__name__)
 
@@ -47,15 +50,19 @@ class MoomooClient:
         if self._connected:
             return
 
+        print("Entering client.connect()...", flush=True)
         logger.info(f"Connecting to OpenD at {config.host}:{config.port}...")
         try:
             # Initialize Quote Context
+            print("Initializing Quote Context...", flush=True)
             self._quote_ctx = OpenQuoteContext(host=config.host, port=config.port)
             
             # Initialize HK Trade Context (since we are focused on HK)
+            print("Initializing Trade Context...", flush=True)
             self._trade_ctx = OpenHKTradeContext(host=config.host, port=config.port)
 
             # Simple test call
+            print("Checking Global State...", flush=True)
             ret, _ = self._quote_ctx.get_global_state()
             if ret != RET_OK:
                 raise OpenDConnectionError("Failed to get global state after connect.")
@@ -70,6 +77,7 @@ class MoomooClient:
                      logger.info("Trade context unlocked.")
 
             self._connected = True
+            print("Connection Established!", flush=True)
             logger.info("Connected to OpenD (Quote + HK Trade Context).")
         except Exception as e:
             logger.error(f"Failed to connect to OpenD: {e}")
@@ -155,13 +163,72 @@ class MoomooClient:
             
         trd_env = self._get_trd_env()
         # Note: accinfo_query(trd_env=TrdEnv.REAL, acc_id=0, acc_index=0, refresh_cache=False)
+        print(f"Calling accinfo_query with env={trd_env}...", flush=True)
         ret, data = self._trade_ctx.accinfo_query(trd_env=trd_env)
+        print(f"accinfo_query returned ret={ret}", flush=True)
         
         if ret == RET_OK:
             return data.to_dict(orient="records")[0]
         else:
             logger.error(f"Error fetching balance: {data}")
             raise QuoteError(f"OpenD Error: {data}")
+
+    def get_orders(self, symbol: str = "", status_filter: List[Any] = None) -> List[Dict[str, Any]]:
+        """
+        Fetches orders.
+        """
+        self.connect()
+        if not self._trade_ctx:
+            raise OpenDConnectionError("Trade context is null")
+            
+        trd_env = self._get_trd_env()
+        
+        # Determine status filter (default to all if None)
+        # In futu, execute_status_list=None means all
+        
+        ret, data = self._trade_ctx.order_list_query(
+            code=symbol,
+            trd_env=trd_env,
+            status_filter_list=status_filter or []
+        )
+        
+        if ret == RET_OK:
+            return data.to_dict(orient="records")
+        else:
+            logger.error(f"Error fetching orders: {data}")
+            raise QuoteError(f"OpenD Error: {data}")
+
+    def place_order(self, symbol: str, quantity: int, price: float, side: TrdSide) -> Dict[str, Any]:
+        """
+        Places an order after passing risk checks.
+        """
+        self.connect()
+        if not self._trade_ctx:
+             raise OpenDConnectionError("Trade context is null")
+
+        symbol = normalize_symbol(symbol)
+        
+        # 1. Risk Check (Raises RiskError if fails)
+        RiskManager.check_order(symbol, quantity, price)
+
+        # 2. Place Order
+        trd_env = self._get_trd_env()
+        logger.info(f"Placing order: {side} {quantity} {symbol} @ {price} (Env: {trd_env})")
+        
+        ret, data = self._trade_ctx.place_order(
+            price=price,
+            qty=quantity,
+            code=symbol,
+            trd_side=side,
+            trd_env=trd_env,
+            order_type=OrderType.NORMAL, # Limit Order
+        )
+
+        if ret == RET_OK:
+            return data.to_dict(orient="records")[0]
+        else:
+            logger.error(f"Order failed: {data}")
+            raise QuoteError(f"Order Placement Error: {data}")
 
     def close(self):
         if self._quote_ctx:
