@@ -13,6 +13,9 @@ from .trading.buy_stock import buy_stock
 from .trading.sell_stock import sell_stock
 from .trading.cancel_order import cancel_order
 from .trading.modify_order import modify_order
+from .trading.get_deals import get_deals
+from .account.get_margin_ratio import get_margin_ratio
+from .market_data.get_market_snapshot import get_market_snapshot
 from .system.run_diagnostics import run_diagnostics
 
 # Initialize FastMCP
@@ -35,6 +38,9 @@ mcp.add_tool(buy_stock)
 mcp.add_tool(sell_stock)
 mcp.add_tool(cancel_order)
 mcp.add_tool(modify_order)
+mcp.add_tool(get_deals)
+mcp.add_tool(get_margin_ratio)
+mcp.add_tool(get_market_snapshot)
 mcp.add_tool(run_diagnostics)
 
 @mcp.tool()

@@ -151,10 +151,60 @@ class MoomooClient:
         )
         if ret == RET_OK:
              return data.to_dict(orient="records")[0]
+        else:
+             logger.error(f"Error modifying order: {data}")
+             raise QuoteError(f"OpenD Error: {data}")
+
+    def get_market_snapshot(self, symbols: List[str]) -> List[Dict[str, Any]]:
+        """
+        Fetches market snapshot for a list of symbols (Batch).
+        """
+        self.connect()
+        if not self._quote_ctx:
+             raise OpenDConnectionError("Quote context is null")
+        
+        normalized_symbols = [normalize_symbol(s) for s in symbols]
+        
+        ret, data = self._quote_ctx.get_market_snapshot(normalized_symbols)
+        if ret == RET_OK:
+             return data.to_dict(orient="records")
+        else:
+             logger.error(f"Error fetching snapshot: {data}")
+             raise QuoteError(f"OpenD Error: {data}")
+
+    def get_deals(self, symbol: str = "", start_date: str = "", end_date: str = "") -> List[Dict[str, Any]]:
+        """
+        Fetches executed deals (fills).
+        """
+        self.connect()
+        if not self._trade_ctx:
+             raise OpenDConnectionError("Trade context is null")
+        trd_env = self._get_trd_env()
+        
+        ret, data = self._trade_ctx.deal_list_query(
+            code=symbol,
+            trd_env=trd_env,
+        )
+        if ret == RET_OK:
+             return data.to_dict(orient="records")
+        else:
+             logger.error(f"Error fetching deals: {data}")
+             raise QuoteError(f"OpenD Error: {data}")
+
+    def get_funds(self) -> Dict[str, Any]:
+        """
+        Fetches detailed funds/asset info (Cash, GPV, Margin).
+        """
+        self.connect()
+        if not self._trade_ctx:
+             raise OpenDConnectionError("Trade context is null")
+        trd_env = self._get_trd_env()
+        
+        ret, data = self._trade_ctx.accinfo_query(trd_env=trd_env)
         if ret == RET_OK:
              return data.to_dict(orient="records")[0]
         else:
-             logger.error(f"Error modifying order: {data}")
+             logger.error(f"Error fetching funds: {data}")
              raise QuoteError(f"OpenD Error: {data}")
 
     def close(self):

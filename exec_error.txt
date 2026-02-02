@@ -1,0 +1,1 @@
+CRITICAL ERROR: OpenD Error: Simulated trade does not support deal list

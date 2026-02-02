@@ -19,8 +19,10 @@ An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to prov
 - **Trading**: Place **Market** and **Limit** orders for Stocks.
 - **Option Chains**: Inspect available option contracts for any stock.
 - **Order Management**: Modify or Cancel open orders.
+- **Deal Execution**: View actual fill prices/fees with `get_deals`.
 - **Pro Tools**: View **Level 2 Order Book** (Depth) and check **Fundamentals** (PE, PB).
-- **Risk Management**: Built-in `max_order_value` checks and buying power calculations.
+- **Risk Management**: Check `margin_ratio` to prevent liquidation and `max_order_value` for safety.
+- **High-Speed Data**: Use `get_market_snapshot` for low-latency batch quotes (1ms efficiency).
 
 ## Installation
 
@@ -65,6 +67,9 @@ An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to prov
 | `get_order_book` | Level 2 Market Depth (Ladder) | `symbol` |
 | `get_financials` | Key Ratios (PE, PB, Market Cap) | `symbol` |
 | `get_max_buyable`| Calc max shares (with reason analysis) | `symbol`, `price` |
+| `get_deals`      | View executed trade fills (Real-env only)| `symbol` (optional) |
+| `get_margin_ratio`| Check account risk/margin status | *None* |
+| `get_market_snapshot`| Batch fetch quotes (Fast) | `symbols` (List) |
 | `run_diagnostics`| Execute self-test health check | `symbol` (optional) |
 
 ## Health Checks & Diagnostics
@@ -96,6 +101,9 @@ python examples/scripts/test_advanced.py
 
 # Test Pro Tools
 python examples/scripts/test_pro_tools.py
+
+# Test Execution & Safety (Deals, Margin, Snapshot)
+python examples/scripts/test_execution_safety.py
 ```
 
 ## Contributing
