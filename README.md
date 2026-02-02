@@ -18,7 +18,9 @@ An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to prov
 ### Trading & Risk
 - **Trading**: Place **Market** and **Limit** orders for Stocks.
 - **Option Chains**: Inspect available option contracts for any stock.
-- **Risk Management**: Built-in `max_order_value` checks to prevent accidental fat-finger trades.
+- **Order Management**: Modify or Cancel open orders.
+- **Pro Tools**: View **Level 2 Order Book** (Depth) and check **Fundamentals** (PE, PB).
+- **Risk Management**: Built-in `max_order_value` checks and buying power calculations.
 
 ## 🛠️ Installation
 
@@ -56,8 +58,13 @@ An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to prov
 | `get_positions` | Current stock holdings | *None* |
 | `get_balance` | Account funds details | *None* |
 | `get_orders` | List active/filled orders | `symbol` (optional) |
+| `cancel_order` | Cancel an open order | `order_id` |
+| `modify_order` | Change Price/Qty of order | `order_id`, `price`, `quantity` |
 | `buy_stock` | Place Buy Order (Limit/Market) | `symbol`, `quantity`, `price`, `order_type` |
 | `sell_stock` | Place Sell Order (Limit/Market) | `symbol`, `quantity`, `price`, `order_type` |
+| `get_order_book` | Level 2 Market Depth (Ladder) | `symbol` |
+| `get_financials` | Key Ratios (PE, PB, Market Cap) | `symbol` |
+| `get_max_buyable`| Calc max shares (with reason analysis) | `symbol`, `price` |
 
 ## 🧪 Verification
 
@@ -72,7 +79,21 @@ python examples/scripts/account_snapshot.py
 
 # Test Trading & Options
 python examples/scripts/test_advanced.py
+
+# Test Pro Tools (Order Book, Financials, Order Mgmt)
+python examples/scripts/test_pro_tools.py
 ```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+1.  Fork the repository.
+2.  Create a new branch (`git checkout -b feature/amazing-feature`).
+3.  Commit your changes (`git commit -m 'Add some amazing feature'`).
+4.  Push to the branch (`git push origin feature/amazing-feature`).
+5.  Open a Pull Request.
+
+Please ensure you follow the existing code style and add tests for any new features.
 
 ## ⚠️ Risk & Disclaimer
 This software is for educational and research purposes. Validating in `paper` mode is highly recommended before any live usage.
