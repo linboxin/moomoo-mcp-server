@@ -2,6 +2,7 @@ from mcp.server.fastmcp import FastMCP
 import logging
 from .market_data.get_quote import get_quote
 from .market_data.get_kline import get_kline
+from .market_data.get_option_chain import get_option_chain
 from .account.get_positions import get_positions
 from .account.get_balance import get_balance
 from .account.get_orders import get_orders
@@ -17,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 mcp.add_tool(get_quote)
 mcp.add_tool(get_kline)
+mcp.add_tool(get_option_chain)
 mcp.add_tool(get_positions)
 mcp.add_tool(get_balance)
 mcp.add_tool(get_orders)

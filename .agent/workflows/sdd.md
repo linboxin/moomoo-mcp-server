@@ -24,3 +24,7 @@ Before implementing any complex feature (Milestone B, C, D, F), follow this proc
 
 5. **Verify**:
    - Ensure implementation matches the behaviors defined in the design.
+
+6. **Documentation**:
+   - Update `README.md` if new tools are added.
+   - List the new tool, its description, and arguments in the "Available Tools" table.

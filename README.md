@@ -15,6 +15,11 @@ An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to prov
 - **Balance**: Check account cash, market value, and purchasing power.
 - **Paper Trading Ready**: Automatically detects your environment configuration and switches to `Simulate` mode for safety.
 
+### Trading & Risk
+- **Trading**: Place **Market** and **Limit** orders for Stocks.
+- **Option Chains**: Inspect available option contracts for any stock.
+- **Risk Management**: Built-in `max_order_value` checks to prevent accidental fat-finger trades.
+
 ## 🛠️ Installation
 
 1. **Prerequisites**
@@ -47,8 +52,12 @@ An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to prov
 | :--- | :--- | :--- |
 | `get_quote` | Real-time price snapshot | `symbol` (e.g., "HK.00700") |
 | `get_kline` | Historical candlesticks | `symbol`, `period` (default "1d"), `limit` |
+| `get_option_chain` | List options contracts | `symbol`, `start`, `end` |
 | `get_positions` | Current stock holdings | *None* |
 | `get_balance` | Account funds details | *None* |
+| `get_orders` | List active/filled orders | `symbol` (optional) |
+| `buy_stock` | Place Buy Order (Limit/Market) | `symbol`, `quantity`, `price`, `order_type` |
+| `sell_stock` | Place Sell Order (Limit/Market) | `symbol`, `quantity`, `price`, `order_type` |
 
 ## 🧪 Verification
 
@@ -60,6 +69,9 @@ python examples/scripts/quick_kline.py
 
 # Test Account Data
 python examples/scripts/account_snapshot.py
+
+# Test Trading & Options
+python examples/scripts/test_advanced.py
 ```
 
 ## ⚠️ Risk & Disclaimer

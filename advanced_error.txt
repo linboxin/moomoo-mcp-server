@@ -1,0 +1,1 @@
+CRITICAL ERROR: Risk Reject: Order value 60150.00 exceeds limit 2000.00 for HK.00700

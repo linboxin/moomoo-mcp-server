@@ -3,7 +3,7 @@ import threading
 from typing import Optional, Dict, List, Any
 from futu import (
     OpenQuoteContext,
-    OpenHKTradeContext,
+    OpenSecTradeContext,
     RET_OK,
     RET_ERROR,
     SysConfig,
@@ -27,7 +27,7 @@ class MoomooClient:
 
     def __init__(self):
         self._quote_ctx: Optional[OpenQuoteContext] = None
-        self._trade_ctx: Optional[OpenHKTradeContext] = None
+        self._trade_ctx: Optional[OpenSecTradeContext] = None
         self._connected = False
         
         # Configure futu global settings if needed
@@ -50,19 +50,15 @@ class MoomooClient:
         if self._connected:
             return
 
-        print("Entering client.connect()...", flush=True)
         logger.info(f"Connecting to OpenD at {config.host}:{config.port}...")
         try:
             # Initialize Quote Context
-            print("Initializing Quote Context...", flush=True)
             self._quote_ctx = OpenQuoteContext(host=config.host, port=config.port)
             
-            # Initialize HK Trade Context (since we are focused on HK)
-            print("Initializing Trade Context...", flush=True)
-            self._trade_ctx = OpenHKTradeContext(host=config.host, port=config.port)
+            # Initialize Trade Context (Universal: supports HK, US, CN, etc.)
+            self._trade_ctx = OpenSecTradeContext(host=config.host, port=config.port)
 
             # Simple test call
-            print("Checking Global State...", flush=True)
             ret, _ = self._quote_ctx.get_global_state()
             if ret != RET_OK:
                 raise OpenDConnectionError("Failed to get global state after connect.")
@@ -77,7 +73,6 @@ class MoomooClient:
                      logger.info("Trade context unlocked.")
 
             self._connected = True
-            print("Connection Established!", flush=True)
             logger.info("Connected to OpenD (Quote + HK Trade Context).")
         except Exception as e:
             logger.error(f"Failed to connect to OpenD: {e}")
@@ -163,9 +158,9 @@ class MoomooClient:
             
         trd_env = self._get_trd_env()
         # Note: accinfo_query(trd_env=TrdEnv.REAL, acc_id=0, acc_index=0, refresh_cache=False)
-        print(f"Calling accinfo_query with env={trd_env}...", flush=True)
+        trd_env = self._get_trd_env()
+        # Note: accinfo_query(trd_env=TrdEnv.REAL, acc_id=0, acc_index=0, refresh_cache=False)
         ret, data = self._trade_ctx.accinfo_query(trd_env=trd_env)
-        print(f"accinfo_query returned ret={ret}", flush=True)
         
         if ret == RET_OK:
             return data.to_dict(orient="records")[0]
@@ -198,7 +193,33 @@ class MoomooClient:
             logger.error(f"Error fetching orders: {data}")
             raise QuoteError(f"OpenD Error: {data}")
 
-    def place_order(self, symbol: str, quantity: int, price: float, side: TrdSide) -> Dict[str, Any]:
+    def get_option_chain(self, symbol: str, start_date: str, end_date: str) -> List[Dict[str, Any]]:
+        """
+        Fetches option chain.
+        """
+        self.connect()
+        if not self._quote_ctx:
+             raise OpenDConnectionError("Quote context is null")
+             
+        # Normalize symbol (for options, usually underlying is needed, but API takes 'code')
+        # If symbol is the underlying stock, this returns options FOR that stock.
+        symbol = normalize_symbol(symbol)
+        
+        # request_history_kline is NOT for option chains.
+        # Use get_option_chain
+        
+        # Note: get_option_chain(code, begin_time, end_time, data_filter=None) -> actually (code, index_option_type, start, end, ...)
+        # We must use kwargs to avoid passing date to index_option_type
+        # Assuming index_option_type defaults to something valid or is ignored for stocks if skipped
+        ret, data = self._quote_ctx.get_option_chain(symbol, start=start_date, end=end_date)
+        
+        if ret == RET_OK:
+             return data.to_dict(orient="records")
+        else:
+             logger.error(f"Error fetching option chain: {data}")
+             raise QuoteError(f"OpenD Error: {data}")
+
+    def place_order(self, symbol: str, quantity: int, price: float, side: TrdSide, order_type: OrderType = OrderType.NORMAL) -> Dict[str, Any]:
         """
         Places an order after passing risk checks.
         """
@@ -208,12 +229,25 @@ class MoomooClient:
 
         symbol = normalize_symbol(symbol)
         
-        # 1. Risk Check (Raises RiskError if fails)
-        RiskManager.check_order(symbol, quantity, price)
+        # 1. Risk Check
+        # For Market orders, price might be 0, so fetching current quote is safer for risk estimation
+        check_price = price
+        if order_type == OrderType.MARKET:
+            try:
+                # Fetch recent quote to estimate value
+                # Note: This might add latency, but safety is priority
+                quote = self.get_quote(symbol)
+                check_price = quote.get("last_price", 0.0)
+                if check_price == 0.0:
+                     logger.warning("Market order risk check: Quote price is 0. Using provided price/0.")
+            except Exception as e:
+                logger.warning(f"Could not fetch quote for market order risk check: {e}")
+        
+        RiskManager.check_order(symbol, quantity, check_price)
 
         # 2. Place Order
         trd_env = self._get_trd_env()
-        logger.info(f"Placing order: {side} {quantity} {symbol} @ {price} (Env: {trd_env})")
+        logger.info(f"Placing order: {side} {quantity} {symbol} @ {price} (Type: {order_type})")
         
         ret, data = self._trade_ctx.place_order(
             price=price,
@@ -221,7 +255,7 @@ class MoomooClient:
             code=symbol,
             trd_side=side,
             trd_env=trd_env,
-            order_type=OrderType.NORMAL, # Limit Order
+            order_type=order_type, 
         )
 
         if ret == RET_OK:
