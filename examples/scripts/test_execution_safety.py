@@ -39,8 +39,6 @@ def main():
         print("\nExecution & Safety Tests PASSED.")
 
     except Exception as e:
-        with open("exec_error.txt", "w") as f:
-            f.write(f"CRITICAL ERROR: {e}")
         print(f"CRITICAL ERROR: {e}", flush=True)
         sys.exit(1)
     finally:
