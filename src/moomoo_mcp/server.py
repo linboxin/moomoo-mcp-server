@@ -16,6 +16,7 @@ from .trading.modify_order import modify_order
 from .trading.get_deals import get_deals
 from .account.get_margin_ratio import get_margin_ratio
 from .market_data.get_market_snapshot import get_market_snapshot
+from .analysis.get_technical_indicators import get_technical_indicators
 from .system.run_diagnostics import run_diagnostics
 
 # Initialize FastMCP
@@ -41,6 +42,7 @@ mcp.add_tool(modify_order)
 mcp.add_tool(get_deals)
 mcp.add_tool(get_margin_ratio)
 mcp.add_tool(get_market_snapshot)
+mcp.add_tool(get_technical_indicators)
 mcp.add_tool(run_diagnostics)
 
 @mcp.tool()
