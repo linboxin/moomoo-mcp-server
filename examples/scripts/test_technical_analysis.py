@@ -17,12 +17,28 @@ def main():
         
         # Check basic sanity
         inds = res.get("indicators", {})
+        price = res.get("last_price", 0)
+        
+        # 1. RSI Invariant (0-100)
         if "RSI_14" in inds:
              rsi = inds["RSI_14"]
-             if 0 <= rsi <= 100:
-                 print("RSI sanity check: OK")
-             else:
-                 print(f"RSI sanity check: FAIL ({rsi})")
+             status = "Pass" if 0 <= rsi <= 100 else "FAIL"
+             print(f"[Check 1] RSI Range (0-100): {rsi} -> {status}")
+
+        # 2. Bollinger Invariant (Upper >= Mid >= Lower)
+        if "BOLL" in inds:
+             b = inds["BOLL"]
+             up, mid, low = b["BOLL_UPPER"], b["BOLL_MID"], b["BOLL_LOWER"]
+             status = "Pass" if up >= mid >= low else "FAIL"
+             print(f"[Check 2] BOLL Order ({up} > {mid} > {low}) -> {status}")
+             
+        # 3. MA Proximity (MA shouldn't be 0 or wild if price is 600)
+        if "SMA_20" in inds and price > 0:
+             sma = inds["SMA_20"]
+             diff_pct = abs(price - sma) / price
+             # Is SMA within 20% of price? (Usually yes for blue chips)
+             status = "Pass" if diff_pct < 0.20 else "WARNING (Volatile?)"
+             print(f"[Check 3] SMA Reality Check (Price: {price}, SMA: {sma}, Diff: {diff_pct:.1%}) -> {status}")
         
         print("\nTechnical Intelligence Tests PASSED.")
 

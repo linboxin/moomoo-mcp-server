@@ -25,6 +25,15 @@ An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to prov
 - **Risk Management**: Check `margin_ratio` to prevent liquidation and `max_order_value` for safety.
 - **High-Speed Data**: Use `get_market_snapshot` for low-latency batch quotes (1ms efficiency).
 
+## Prerequisites
+
+1.  **Moomoo Account**: You need a live or paper trading account.
+2.  **Moomoo OpenD**: The official gateway software must be running on your machine. [Download Here](https://www.moomoo.com/download/opend).
+3.  **Data Subscriptions**:
+    *   To trade/view **US Stocks**, your Moomoo account must have **US Market Data** subscription.
+    *   To trade/view **HK Stocks**, you need **HK Market Data**.
+    *   *Note: If you lack permissions, tools like `get_quote("US.AAPL")` will return permission errors.*
+
 ## Installation
 
 1. **Prerequisites**
