@@ -14,11 +14,15 @@ def get_technical_indicators(
     Calculates technical indicators for a stock.
     
     Args:
-        symbol: Stock symbol (e.g., "HK.00700").
-        indicators: List of indicators to calculate. 
-                    Supported: "SMA_n", "EMA_n", "WMA_n", "RSI_n", "MACD", "BOLL", "ATR", "VOL_SMA_n".
-        period: Bar period ("1d", "1m", "5m", "15m", "30m", "60m"). Default "1d".
-        limit: Number of bars to fetch (more is better for MA accuracy). Default 200.
+    Args:
+        symbol: Stock symbol (e.g., "HK.00700", "US.AAPL").
+        indicators: List of technical indicators to calculate. 
+                    - Moving Averages: "SMA_20", "EMA_50", "WMA_100" (replace number with any period).
+                    - Momentum: "RSI_14", "MACD".
+                    - Volatility: "BOLL" (Bollinger Bands), "ATR".
+                    - Volume: "VOL_SMA_20".
+        period: Timeframe of the chart. Options: "1m", "5m", "15m", "30m", "60m" (Hourly), "1d" (Daily), "1w" (Weekly).
+        limit: Number of bars to fetch (default 200). Increase this if calculating long-period MAs (e.g. use 300 for SMA_200).
     """
     client = get_client()
     symbol = normalize_symbol(symbol)

@@ -1,6 +1,6 @@
 # Moomoo MCP Server
 
-An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to provide market data and trading capabilities to LLMs (like Claude, Gemini, etc.).
+An MCP server that connects **Moomoo OpenD** to AI agents (Claude, Cursor, etc.) for autonomous trading and market analysis.
 
 ## Features
 
@@ -59,6 +59,23 @@ An MCP (Model Context Protocol) server that connects to **Moomoo OpenD** to prov
    MOOMOO_ENV=paper        # 'paper' or 'live'
    MOOMOO_DEFAULT_MARKET=HK # Default market prefix (HK, US, CN)
    ```
+
+## Quick Start: Claude Desktop
+
+To connect with the [Claude Desktop App](https://claude.ai/download):
+
+1.  Open config:
+    *   **Mac**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+    *   **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+2.  Add to `mcpServers`:
+    ```json
+    "moomoo": {
+      "command": "python",
+      "args": ["C:/absolute/path/to/moomoo-mcp-server/src/moomoo_mcp/server.py"],
+      "env": { "MOOMOO_PWD": "your_opend_password" }
+    }
+    ```
 
 ## Available Tools
 
